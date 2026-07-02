@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GamingSeeds.Hangfire.Demo/GamingSeeds.Hangfire.Demo.csproj" />
+  </Folder>
+</Solution>

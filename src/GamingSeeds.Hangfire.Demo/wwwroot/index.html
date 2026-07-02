@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GamingSeeds · Hangfire Demo</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/site.css" rel="stylesheet" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/images/gamingseedslogo.png" alt="GamingSeeds" width="28" height="28" />
+                GamingSeeds <small>Hangfire Demo</small>
+            </a>
+            <a class="btn btn-accent btn-sm" href="/hangfire" target="_blank">Open Hangfire Dashboard</a>
+        </div>
+    </nav>
+</header>
+
+<main class="container my-4">
+    <p class="text-secondary">
+        Trigger each Hangfire job type below and watch it run — in these panels and live in the
+        <a href="/hangfire" target="_blank">dashboard</a>.
+    </p>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-header">Fire-and-forget + Delayed</div>
+                <div class="card-body">
+                    <p class="small text-secondary">Registering enqueues a confirmation email now and schedules a reminder for later.</p>
+                    <div class="input-group input-group-sm mb-2">
+                        <input id="email" type="email" class="form-control" placeholder="player@example.com" />
+                    </div>
+                    <button class="btn btn-primary btn-sm w-100" onclick="register()">Register user</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-header">Recurring</div>
+                <div class="card-body">
+                    <p class="small text-secondary">Seed abandoned accounts, then hit <em>Trigger now</em> on the <code>cleanup-unconfirmed-users</code> job in the dashboard.</p>
+                    <button class="btn btn-primary btn-sm w-100" onclick="seedStale()">Seed stale accounts</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-header">Continuation</div>
+                <div class="card-body">
+                    <p class="small text-secondary">Uploads an image, then chains process → thumbnail → optimize.</p>
+                    <button class="btn btn-primary btn-sm w-100" onclick="upload()">Upload seed image</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-header">Automatic retries</div>
+                <div class="card-body">
+                    <p class="small text-secondary">Enqueues a job that always fails so you can watch Hangfire retry it.</p>
+                    <button class="btn btn-primary btn-sm w-100" onclick="triggerFail()">Trigger failing job</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">Users</div>
+                <div class="card-body p-2"><div id="users" class="small"></div></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">Email Outbox</div>
+                <div class="card-body p-2"><div id="emails" class="small"></div></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">Processed Images</div>
+                <div class="card-body p-2"><div id="images" class="row row-cols-2 g-2"></div></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    async function register() {
+        const input = document.getElementById('email');
+        const email = input.value || `player-${Date.now()}@example.com`;
+        await fetch('/users/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        input.value = '';
+        refresh();
+    }
+
+    async function seedStale() { await fetch('/users/seed-stale', { method: 'POST' }); refresh(); }
+    async function upload() { await fetch('/images/upload', { method: 'POST' }); }
+    async function triggerFail() { await fetch('/demo/fail', { method: 'POST' }); }
+    async function confirmUser(id) { await fetch(`/users/${id}/confirm`, { method: 'POST' }); refresh(); }
+
+    function badge(user) {
+        return user.isConfirmed
+            ? '<span class="badge text-bg-success">confirmed</span>'
+            : '<span class="badge text-bg-warning">unconfirmed</span>';
+    }
+
+    async function refresh() {
+        const [users, emails, images] = await Promise.all([
+            fetch('/users').then(r => r.json()),
+            fetch('/emails').then(r => r.json()),
+            fetch('/images').then(r => r.json())
+        ]);
+
+        document.getElementById('users').innerHTML = users.length
+            ? users.map(u => `<div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                    <span class="text-truncate me-2">${u.email}</span>
+                    <span class="text-nowrap">${badge(u)}
+                    ${u.isConfirmed ? '' : `<button class="btn btn-outline-secondary btn-sm py-0 ms-1" onclick="confirmUser(${u.id})">confirm</button>`}</span>
+                </div>`).join('')
+            : '<div class="text-secondary p-2">No users yet.</div>';
+
+        document.getElementById('emails').innerHTML = emails.length
+            ? emails.map(e => `<div class="border-bottom py-1">
+                    <div>${e.subject}</div>
+                    <div class="text-secondary">to ${e.to} · ${new Date(e.sentAt).toLocaleTimeString()}</div>
+                </div>`).join('')
+            : '<div class="text-secondary p-2">Outbox empty.</div>';
+
+        document.getElementById('images').innerHTML = images.length
+            ? images.map(src => `<div class="col"><img class="gallery-thumb" src="${src}" alt="generated" /></div>`).join('')
+            : '<div class="text-secondary p-2">No images yet.</div>';
+    }
+
+    refresh();
+    setInterval(refresh, 2000);
+</script>
+</body>
+</html>
