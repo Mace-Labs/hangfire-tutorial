@@ -29,7 +29,10 @@ builder.Services.AddHangfire(config => config
         DisableGlobalLocks = true
     }));
 
-builder.Services.AddHangfireServer();
+// Poll for scheduled/retry jobs every second so delayed jobs and retries fire promptly in the demo.
+// The default is 15 seconds, which is fine in production.
+builder.Services.AddHangfireServer(options =>
+    options.SchedulePollingInterval = TimeSpan.FromSeconds(1));
 
 var app = builder.Build();
 

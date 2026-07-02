@@ -131,7 +131,7 @@ Open `/hangfire` to watch jobs move through **Enqueued → Processing → Succee
 ```csharp
 public interface IFlakyJobs
 {
-    [AutomaticRetry(Attempts = 3, DelaysInSeconds = [10, 20, 30])]   // <-- here, on the interface
+    [AutomaticRetry(Attempts = 3, DelaysInSeconds = [3, 6, 9])]   // <-- here, on the interface
     Task CallUnreliableApi();
 }
 ```
