@@ -126,13 +126,13 @@ Open `/hangfire` to watch jobs move through **Enqueued → Processing → Succee
 - **Enqueue via `IBackgroundJobClient` / `IRecurringJobManager`** — testable instead of the static `BackgroundJob` facade.
 - **Pass IDs, not entities.** Job arguments are serialized to JSON and stored. Pass a `userId` and load the entity fresh inside the job — never a whole `User` object.
 - **Make jobs idempotent.** A job can run more than once (retries). `SendConfirmationReminder` no-ops if the user already confirmed.
-- **Put job-filter attributes on the *interface* method.** When you enqueue via `Enqueue<IEmailJobs>(...)`, Hangfire reads `[AutomaticRetry]` from the **interface** method, not the implementation. Put it on the class and it's silently ignored (you'll get the default 10 retries).
+- **Put job-filter attributes on the *interface* method.** When you enqueue via `Enqueue<IFlakyJobs>(...)`, Hangfire reads `[AutomaticRetry]` from the **interface** method, not the implementation. Put it on the class and it's silently ignored (you'll get the default 10 retries).
 
 ```csharp
-public interface IEmailJobs
+public interface IFlakyJobs
 {
-    [AutomaticRetry(Attempts = 5)]   // <-- here, on the interface
-    Task SendConfirmationEmail(int userId);
+    [AutomaticRetry(Attempts = 3, DelaysInSeconds = [10, 20, 30])]   // <-- here, on the interface
+    Task CallUnreliableApi();
 }
 ```
 
