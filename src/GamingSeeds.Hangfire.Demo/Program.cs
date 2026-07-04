@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<DemoOptions>(builder.Configuration.GetSection(DemoOptions.SectionName));
+builder.Services.AddSingleton<ApiOutage>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppConnection")));
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IEmailJobs, EmailJobs>();
 builder.Services.AddScoped<IUserMaintenanceJobs, UserMaintenanceJobs>();
 builder.Services.AddScoped<IImageProcessingJobs, ImageProcessingJobs>();
+builder.Services.AddScoped<IFlakyJobs, FlakyJobs>();
 
 // Both poll intervals are lowered to 1 second so jobs, delays, and retries fire promptly
 // on camera. The 15-second defaults are fine in production.
