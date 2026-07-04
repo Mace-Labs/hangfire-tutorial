@@ -1,0 +1,88 @@
+/* GamingSeeds brand tokens applied to Bootstrap 5.3 (from the real site's _themeColors.scss). */
+:root {
+    --gs-primary: #123335;
+    --gs-secondary: #543157;
+    --gs-accent: #e47232;
+    --gs-warning: #ffb347;
+
+    --bs-primary: var(--gs-primary);
+    --bs-primary-rgb: 18, 51, 53;
+    --bs-secondary: var(--gs-secondary);
+    --bs-secondary-rgb: 84, 49, 87;
+    --bs-link-color: var(--gs-primary);
+    --bs-link-hover-color: #0b2122;
+}
+
+body {
+    background-color: #f5f3ee;
+}
+
+.bg-primary {
+    background-color: var(--gs-primary) !important;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: .3px;
+}
+
+.navbar-brand small {
+    opacity: .7;
+    font-weight: 400;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--gs-primary);
+    --bs-btn-border-color: var(--gs-primary);
+    --bs-btn-hover-bg: #0b2122;
+    --bs-btn-hover-border-color: #0b2122;
+    --bs-btn-active-bg: #0b2122;
+}
+
+.btn-accent {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--gs-accent);
+    --bs-btn-border-color: var(--gs-accent);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #cf5f22;
+    --bs-btn-hover-border-color: #cf5f22;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(18, 51, 53, .08);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 2px solid var(--gs-accent);
+    font-weight: 600;
+}
+
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--gs-primary);
+    --bs-nav-link-color: var(--gs-primary);
+}
+
+.pipe-img {
+    width: 150px;
+    height: 94px;
+    object-fit: cover;
+    border-radius: .375rem;
+}
+
+.pipe-placeholder {
+    width: 150px;
+    height: 94px;
+    border: 2px dashed #c9c4b8;
+    border-radius: .375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a09a8c;
+}
+
+.pipe-arrow {
+    font-size: 1.5rem;
+    color: var(--gs-accent);
+}

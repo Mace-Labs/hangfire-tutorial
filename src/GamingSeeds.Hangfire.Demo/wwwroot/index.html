@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GamingSeeds · Hangfire Demo</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/site.css?v=2" rel="stylesheet" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/images/gamingseedslogo.png" alt="GamingSeeds" width="28" height="28" />
+                GamingSeeds <small>Hangfire Demo</small>
+            </a>
+            <a class="btn btn-accent btn-sm" href="/hangfire" target="_blank">Open Hangfire Dashboard</a>
+        </div>
+    </nav>
+</header>
+
+<main class="container my-4">
+    <ul class="nav nav-pills mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pane-fire-and-forget" type="button" role="tab">Fire-and-forget</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-delayed" type="button" role="tab">Delayed</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-recurring" type="button" role="tab">Recurring</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-continuations" type="button" role="tab">Continuations</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-retries" type="button" role="tab">Retries</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <div class="tab-pane fade show active" id="pane-fire-and-forget" role="tabpanel">
+            <h3>Fire-and-forget jobs</h3>
+            <p class="text-secondary">Registration returns immediately — the confirmation email is sent by a background worker.</p>
+            <div class="row g-3">
+                <div class="col-lg-5">
+                    <div class="card h-100">
+                        <div class="card-header">Register a user</div>
+                        <div class="card-body">
+                            <input id="email" type="email" class="form-control form-control-sm mb-3" placeholder="player@example.com" />
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="registerUser('/users/register-inline', 'time-inline')">Register — inline send (old way)</button>
+                                <span id="time-inline" class="badge time-chip"></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-primary btn-sm" onclick="registerUser('/users/register', 'time-background')">Register — background job</button>
+                                <span id="time-background" class="badge time-chip"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header">Email Outbox</div>
+                        <div class="card-body p-2"><div class="outbox-panel small"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pane-delayed" role="tabpanel">
+            <h3>Delayed jobs</h3>
+            <p class="text-secondary">Registering also schedules a reminder for later — it only sends if the user still hasn't confirmed.</p>
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header">Register a user</div>
+                        <div class="card-body">
+                            <button class="btn btn-primary btn-sm w-100 mb-3" onclick="registerUser('/users/register')">Register user</button>
+                            <p class="small text-secondary mb-0">Watch the reminder appear in the dashboard's <em>Scheduled</em> tab. Confirm a user before it fires and their reminder quietly does nothing.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header">Users</div>
+                        <div class="card-body p-2"><div class="users-panel small"></div></div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header">Email Outbox</div>
+                        <div class="card-body p-2"><div class="outbox-panel small"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pane-recurring" role="tabpanel">
+            <h3>Recurring jobs</h3>
+            <p class="text-secondary">A daily job deletes accounts that never confirmed their email within seven days.</p>
+            <div class="row g-3">
+                <div class="col-lg-5">
+                    <div class="card h-100">
+                        <div class="card-header">Stale accounts</div>
+                        <div class="card-body">
+                            <button class="btn btn-primary btn-sm w-100 mb-3" onclick="seedStale()">Seed stale accounts</button>
+                            <p class="small text-secondary mb-0">Adds three 30-day-old unconfirmed accounts. Then open the dashboard's <em>Recurring Jobs</em> tab and hit <em>Trigger now</em> on <code>cleanup-unconfirmed-users</code>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header">Users</div>
+                        <div class="card-body p-2"><div class="users-panel small"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pane-continuations" role="tabpanel">
+            <h3>Continuation jobs</h3>
+            <p class="text-secondary">Each step starts only after the previous one succeeds: process → thumbnail → optimize.</p>
+            <div class="card mb-3">
+                <div class="card-body py-2 d-flex align-items-center gap-3">
+                    <button class="btn btn-primary btn-sm" onclick="uploadImage()">Upload seed image</button>
+                    <span class="small text-secondary">Watch the pipeline fill in left to right — and the two waiting jobs in the dashboard's <em>Awaiting</em> state.</span>
+                </div>
+            </div>
+            <div id="pipeline"></div>
+        </div>
+
+        <div class="tab-pane fade" id="pane-retries" role="tabpanel">
+            <h3>Automatic retries</h3>
+            <p class="text-secondary">This job calls a third-party API. While the API is down it throws — and Hangfire retries with a growing back-off.</p>
+            <div class="row g-3">
+                <div class="col-lg-5">
+                    <div class="card h-100">
+                        <div class="card-header">Unreliable payment API</div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span>API status:</span>
+                                <span id="outage-badge" class="badge"></span>
+                                <button id="outage-toggle" class="btn btn-outline-secondary btn-sm" onclick="toggleOutage()"></button>
+                            </div>
+                            <button class="btn btn-primary btn-sm w-100" onclick="callApi()">Call unreliable API</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header">What to watch</div>
+                        <div class="card-body small text-secondary">
+                            Take the API down, then call it: the job fails and retries after 3, 6, then 9 seconds (see the dashboard's <em>Retries</em> queue), before landing in <em>Failed</em>.
+                            Open the failed job to read the exception — then bring the API back up and hit <em>Retry</em>: it goes green.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-4">
+        <span class="small text-secondary">Every state change above is visible live in the <a href="/hangfire" target="_blank">Hangfire dashboard</a>.</span>
+        <button class="btn btn-outline-danger btn-sm" onclick="resetDemo()">Reset demo data</button>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function registerUser(url, chipId) {
+        const input = document.getElementById('email');
+        const email = (input && input.value) || `player-${Date.now()}@example.com`;
+
+        const started = performance.now();
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const ms = Math.round(performance.now() - started);
+
+        if (chipId) {
+            const chip = document.getElementById(chipId);
+            chip.textContent = `${ms.toLocaleString()} ms`;
+            chip.className = 'badge time-chip ' + (ms < 500 ? 'text-bg-success' : 'text-bg-danger');
+        }
+        if (input) input.value = '';
+        refresh();
+    }
+
+    async function seedStale() { await fetch('/users/seed-stale', { method: 'POST' }); refresh(); }
+    async function uploadImage() { await fetch('/images/upload', { method: 'POST' }); refresh(); }
+    async function callApi() { await fetch('/demo/call-unreliable-api', { method: 'POST' }); }
+    async function confirmUser(id) { await fetch(`/users/${id}/confirm`, { method: 'POST' }); refresh(); }
+    async function resetDemo() {
+        await fetch('/demo/reset', { method: 'POST' });
+        document.querySelectorAll('.time-chip').forEach(chip => {
+            chip.textContent = '';
+            chip.className = 'badge time-chip';
+        });
+        refresh();
+    }
+
+    async function toggleOutage() {
+        await fetch('/demo/outage', { method: 'POST' });
+        refreshOutage();
+    }
+
+    async function refreshOutage() {
+        const badge = document.getElementById('outage-badge');
+        if (!badge) return;
+        const res = await fetch('/demo/outage').catch(() => null);
+        if (!res || !res.ok) return;
+        const { down } = await res.json();
+        badge.textContent = down ? 'DOWN' : 'UP';
+        badge.className = 'badge ' + (down ? 'text-bg-danger' : 'text-bg-success');
+        document.getElementById('outage-toggle').textContent = down ? 'Bring the API back up' : 'Take the API down';
+    }
+
+    function badge(user) {
+        return user.isConfirmed
+            ? '<span class="badge text-bg-success">confirmed</span>'
+            : '<span class="badge text-bg-warning">unconfirmed</span>';
+    }
+
+    function renderUsers(users) {
+        return users.length
+            ? users.map(u => `<div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                    <span class="text-truncate me-2">${u.email}</span>
+                    <span class="text-nowrap">${badge(u)}
+                    ${u.isConfirmed ? '' : `<button class="btn btn-outline-secondary btn-sm py-0 ms-1" onclick="confirmUser(${u.id})">confirm</button>`}</span>
+                </div>`).join('')
+            : '<div class="text-secondary p-2">No users yet.</div>';
+    }
+
+    function renderEmails(emails) {
+        return emails.length
+            ? emails.map(e => `<div class="border-bottom py-1">
+                    <div>${e.subject}</div>
+                    <div class="text-secondary">to ${e.to} · ${new Date(e.sentAt).toLocaleTimeString()}</div>
+                </div>`).join('')
+            : '<div class="text-secondary p-2">Outbox empty.</div>';
+    }
+
+    const PIPELINE_STEPS = [['source', 'Source'], ['processed', 'Processed'], ['thumbnail', 'Thumbnail'], ['optimized', 'Optimized']];
+
+    function renderPipeline(uploads) {
+        return uploads.length
+            ? uploads.map(u => `<div class="card mb-3"><div class="card-body py-2">
+                    <div class="small text-secondary mb-2">Seed image #${u.imageId}</div>
+                    <div class="d-flex align-items-center gap-2 flex-nowrap overflow-auto">
+                        ${PIPELINE_STEPS.map(([key, label], i) => `
+                            ${i ? '<span class="pipe-arrow">→</span>' : ''}
+                            <div class="text-center flex-shrink-0">
+                                <div class="small fw-semibold">${label}</div>
+                                ${u.steps[key]
+                                    ? `<img class="pipe-img" width="150" height="94" src="${u.steps[key].url}" alt="${label}" />
+                                       <div class="small text-secondary">${u.steps[key].kb} KB</div>`
+                                    : `<div class="pipe-placeholder small">waiting…</div>
+                                       <div class="small text-secondary">&nbsp;</div>`}
+                            </div>`).join('')}
+                    </div>
+                </div></div>`).join('')
+            : '<div class="text-secondary small">No uploads yet.</div>';
+    }
+
+    // Endpoints that don't exist yet (on the earlier code-along tags) just render as empty panels.
+    const safeJson = (url, fallback) =>
+        fetch(url).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
+
+    async function refresh() {
+        const [users, emails, uploads] = await Promise.all([
+            safeJson('/users', []),
+            safeJson('/emails', []),
+            safeJson('/images', [])
+        ]);
+
+        document.querySelectorAll('.users-panel').forEach(el => el.innerHTML = renderUsers(users));
+        document.querySelectorAll('.outbox-panel').forEach(el => el.innerHTML = renderEmails(emails));
+
+        const pipeline = document.getElementById('pipeline');
+        if (pipeline) pipeline.innerHTML = renderPipeline(uploads);
+    }
+
+    refresh();
+    refreshOutage();
+    setInterval(refresh, 2000);
+</script>
+</body>
+</html>
