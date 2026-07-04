@@ -22,6 +22,18 @@ public class EmailJobs(
         await SimulateSmtpSend(user.Email, "Confirm your GamingSeeds account");
     }
 
+    public async Task SendConfirmationReminder(int userId)
+    {
+        var user = await db.Users.FindAsync(userId);
+        if (user is null || user.IsConfirmed)
+        {
+            logger.LogInformation("Reminder skipped for user {UserId}: already confirmed or removed", userId);
+            return;
+        }
+
+        await SimulateSmtpSend(user.Email, "Reminder: confirm your GamingSeeds account");
+    }
+
     private async Task SimulateSmtpSend(string to, string subject)
     {
         logger.LogInformation("Sending '{Subject}' to {To}...", subject, to);
