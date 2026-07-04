@@ -49,6 +49,21 @@ public static class UserEndpoints
             return Results.Ok(user);
         });
 
+        // Seeds already-stale unconfirmed accounts so the recurring cleanup has something to remove on camera.
+        app.MapPost("/users/seed-stale", async (AppDbContext db) =>
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                db.Users.Add(new User
+                {
+                    Email = $"abandoned-{Guid.NewGuid():N}@example.com",
+                    RegisteredAt = DateTime.UtcNow.AddDays(-30)
+                });
+            }
+            await db.SaveChangesAsync();
+            return Results.Ok();
+        });
+
         app.MapGet("/users", async (AppDbContext db) =>
             await db.Users.OrderByDescending(u => u.RegisteredAt).ToListAsync());
 

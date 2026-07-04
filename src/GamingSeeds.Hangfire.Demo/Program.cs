@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Jobs are DI-resolved instance classes (never static) so they can take scoped dependencies like AppDbContext.
 builder.Services.AddScoped<IEmailJobs, EmailJobs>();
+builder.Services.AddScoped<IUserMaintenanceJobs, UserMaintenanceJobs>();
 
 // Both poll intervals are lowered to 1 second so jobs, delays, and retries fire promptly
 // on camera. The 15-second defaults are fine in production.
@@ -37,6 +38,11 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseHangfireDashboard();
+
+app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<IUserMaintenanceJobs>(
+    "cleanup-unconfirmed-users",
+    x => x.DeleteUnconfirmedUsers(),
+    Cron.Daily);
 
 app.MapUserEndpoints();
 app.MapDemoEndpoints();
