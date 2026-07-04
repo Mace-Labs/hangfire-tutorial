@@ -6,7 +6,7 @@ namespace GamingSeeds.Hangfire.Demo.Jobs;
 public class EmailJobs(
     AppDbContext db,
     IOptions<DemoOptions> options,
-    ILogger<EmailJobs> logger)
+    ILogger<EmailJobs> logger) : IEmailJobs
 {
     private readonly DemoOptions _options = options.Value;
 

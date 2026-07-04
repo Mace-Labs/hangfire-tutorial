@@ -13,7 +13,8 @@ builder.Services.Configure<DemoOptions>(builder.Configuration.GetSection(DemoOpt
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppConnection")));
 
-builder.Services.AddScoped<EmailJobs>();
+// Jobs are DI-resolved instance classes (never static) so they can take scoped dependencies like AppDbContext.
+builder.Services.AddScoped<IEmailJobs, EmailJobs>();
 
 // Both poll intervals are lowered to 1 second so jobs, delays, and retries fire promptly
 // on camera. The 15-second defaults are fine in production.
